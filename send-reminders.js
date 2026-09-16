@@ -4,12 +4,16 @@ const webpush = require('web-push');
 const https   = require('https');
 const url     = require('url');
 
-const VAPID_PUBLIC  = 'BD_soVz3PSl-kp9yzey3AK9Kgx7dzn-boW4iOQmTyuxjvPZoVG8BsVnbrJxjCWxj7T0YbN5ej_o6WfnwVHhmT_U';
-const VAPID_PRIVATE = 'XIhdb5FW_UdSHucw0nbVpfqufhsUJ1kRrAs6R1zOYWM';
+const VAPID_PUBLIC  = 'BP_l0vy2WLkFlu5nJ1sYTK4ueh9qTL8Kqzpe_vo3-gZWdI9-k2tiHVjwr6cIzxExKTyBLCiBG0_gbyQmx4Ci_d8';
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE;
 const VAPID_SUBJECT = 'https://beautiful-gaufre-1cad98.netlify.app';
 const FB = 'https://calendar-4b1de-default-rtdb.europe-west1.firebasedatabase.app';
 
-webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+if (!VAPID_PRIVATE) {
+  console.error('VAPID_PRIVATE env var is not set — no pushes can be sent. Set it in Netlify > Site configuration > Environment variables.');
+} else {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
+}
 
 function fbGet(path) {
   return new Promise((resolve, reject) => {
@@ -32,6 +36,7 @@ function fbDelete(path) {
 }
 
 const handler = async () => {
+  if (!VAPID_PRIVATE) return { statusCode: 500, body: 'VAPID_PRIVATE not configured' };
   try {
     const now = Date.now();
     const [reminders, subscriptions] = await Promise.all([
